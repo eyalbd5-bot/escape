@@ -6,13 +6,9 @@ interface Props {
 }
 
 const stopsLabel = (n: number) => (n === 0 ? 'ישיר' : n === 1 ? 'עצירה אחת' : `${n} עצירות`)
-const durLabel = (min?: number) =>
-  typeof min === 'number' ? `${Math.floor(min / 60)}ש׳ ${min % 60}ד׳` : ''
 
 /** One real, priced flight option — clicking opens the booking / Google-Flights link. */
 function OfferRow({ o, best }: { o: FlightOffer; best?: boolean }) {
-  const times = o.depart && o.arrive ? `${o.depart}–${o.arrive}` : ''
-  const meta = [durLabel(o.durationMin), stopsLabel(o.stops)].filter(Boolean).join(' · ')
   return (
     <a className={`offer${best ? ' best' : ''}`} href={o.href} target="_blank" rel="noreferrer">
       <div className="oleft">
@@ -21,13 +17,12 @@ function OfferRow({ o, best }: { o: FlightOffer; best?: boolean }) {
           {best && <span className="obadge">הזול</span>}
         </div>
         <div className="ometa">
-          {times && (
+          {o.depart && (
             <>
-              <bdi>{times}</bdi>
-              {meta && ' · '}
+              יציאה <bdi>{o.depart}</bdi> ·{' '}
             </>
           )}
-          {meta}
+          {stopsLabel(o.stops)}
         </div>
       </div>
       <div className="oright">
