@@ -1,0 +1,12 @@
+/** Source registry — every module implementing the Source Contract. */
+export { currencySource } from './currency'
+export { weatherSource } from './weather'
+export { infoSource } from './info'
+export { mediaSource } from './media'
+export { sportsSource } from './sports'
+export { concertsSource } from './concerts'
+export { flightsSource } from './flights'
+export { hotelsSource } from './hotels'
+export { eventsSource } from './events'
+export { restaurantsSource } from './restaurants'
+export { itinerarySource } from './itinerary'
