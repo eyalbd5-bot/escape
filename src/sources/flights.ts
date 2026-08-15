@@ -29,7 +29,7 @@ async function fetchOffers(
   iata: string,
   d1: string,
   d2: string,
-): Promise<{ offers: FlightOffer[]; updatedAt?: string }> {
+): Promise<{ offers: FlightOffer[]; updatedAt?: string; oneWay?: boolean }> {
   try {
     const u =
       `${CONFIG.flightsApi}?origin=${CONFIG.origin}&destination=${iata}` +
@@ -37,7 +37,7 @@ async function fetchOffers(
     const res = await fetch(u)
     // guard against the dev SPA-fallback (HTML) — only accept real JSON from the Function
     if (!res.ok || !(res.headers.get('content-type') || '').includes('json')) return { offers: [] }
-    const j = (await res.json()) as { offers?: ProxyOffer[]; pricesUpdatedAt?: string }
+    const j = (await res.json()) as { offers?: ProxyOffer[]; pricesUpdatedAt?: string; oneWay?: boolean }
     const gf = googleFlights(iata, d1, d2)
     const offers: FlightOffer[] = (j.offers ?? [])
       .filter((o) => typeof o.price === 'number' && o.price > 0)
@@ -51,7 +51,7 @@ async function fetchOffers(
         stops: typeof o.transfers === 'number' ? o.transfers : 0,
         href: gf, // click → Google Flights for the route + dates
       }))
-    return { offers, updatedAt: j.pricesUpdatedAt }
+    return { offers, updatedAt: j.pricesUpdatedAt, oneWay: j.oneWay }
   } catch {
     return { offers: [] }
   }
@@ -70,7 +70,7 @@ export const flightsSource: Source<FlightsData> = {
       `פרט חברות תעופה, טווחי מחירים נוכחיים בשקלים, אפשרויות ישיר מול עם עצירה, ומתי כדאי להזמין. ` +
       `ענה בעברית, ואם חסר לך מידע (תקציב, כמות נוסעים, גמישות בתאריכים) — שאל אותי.`
 
-    const { offers, updatedAt } = await fetchOffers(q.city.iata, q.startDate, q.endDate)
+    const { offers, updatedAt, oneWay } = await fetchOffers(q.city.iata, q.startDate, q.endDate)
 
     return ok<FlightsData>(KEY, 'official', {
       range: { lo: Math.round(base * 0.85), hi: Math.round(base * 1.2), estimated: isEstimated(q.city) },
@@ -87,6 +87,7 @@ export const flightsSource: Source<FlightsData> = {
       askContext: `שאלה על טיסה מ-TLV ל${label} (${window}):`,
       offers,
       pricesUpdatedAt: updatedAt,
+      offersOneWay: oneWay,
     })
   },
 }
