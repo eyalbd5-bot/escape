@@ -6,12 +6,17 @@
  *
  * Set in Cloudflare Pages → Settings → Environment variables (Production + Preview):
  *   TRAVELPAYOUTS_TOKEN   (required, secret)   — your Data API token
- *   TRAVELPAYOUTS_MARKER  (optional, public)   — affiliate marker (not used for links here)
  *
- * Returns: { offers: [{airline, price, currency, departure_at, duration, transfers}],
- *            pricesUpdatedAt: "YYYY-MM-DD" }.  Never fabricates — empty on any failure.
+ * Quality rules (accuracy is paramount — never surface junk):
+ *   - round-trip prices for the EXACT requested dates only (no month fallback that
+ *     would show a different date's price).
+ *   - max ONE stop — drops the stitched 2–4 stop "self-transfer" itineraries and
+ *     non-operating-carrier nonsense (e.g. Wizz Air to New York).
+ * If nothing high-quality is cached → return empty (the UI shows the live Google
+ * Flights link instead). Never fabricate.
  */
 const TP = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
+const MAX_STOPS = 1
 
 const json = (body, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -23,10 +28,10 @@ async function query(token, { origin, destination, departure_at, return_at, curr
   const p = new URLSearchParams({
     origin,
     destination,
-    departure_at,
+    departure_at, // YYYY-MM-DD → same-day departures only
     currency,
     sorting: 'price',
-    limit: '8',
+    limit: '30',
     one_way: return_at ? 'false' : 'true',
     token,
   })
@@ -51,27 +56,32 @@ export async function onRequest(context) {
   if (!destination || !/^[A-Z]{3}$/.test(destination)) return json({ offers: [] })
 
   try {
-    // 1) exact round-trip dates; 2) fall back to the departure month, one-way
-    let data =
-      (await query(token, { origin, destination, departure_at, return_at, currency })) || []
-    if (data.length === 0 && departure_at.length >= 7)
-      data = (await query(token, { origin, destination, departure_at: departure_at.slice(0, 7), currency })) || []
+    const wanted = departure_at.slice(0, 10) // exact requested departure day
+    const clean = (data) =>
+      (data || [])
+        .filter((o) => o && typeof o.price === 'number' && o.price > 0)
+        .filter((o) => (typeof o.transfers === 'number' ? o.transfers : 9) <= MAX_STOPS)
+        .filter((o) => !wanted || (o.departure_at || '').slice(0, 10) === wanted)
+        .sort((a, b) => a.price - b.price)
 
-    const offers = data
-      .filter((o) => o && typeof o.price === 'number' && o.price > 0)
-      .sort((a, b) => a.price - b.price)
-      .slice(0, 5)
-      .map((o) => ({
-        airline: o.airline || '',
-        price: Math.round(o.price),
-        currency: currency.toUpperCase(),
-        departure_at: o.departure_at || '',
-        duration: typeof o.duration === 'number' ? o.duration : undefined,
-        transfers: typeof o.transfers === 'number' ? o.transfers : 0,
-      }))
+    // round-trip total price first (most useful); if that exact date has no quality
+    // cache, fall back to one-way outbound (denser) so we still show real prices, labeled.
+    let oneWay = false
+    let picked = clean(await query(token, { origin, destination, departure_at, return_at, currency }))
+    if (picked.length === 0 && return_at) {
+      oneWay = true
+      picked = clean(await query(token, { origin, destination, departure_at, currency }))
+    }
 
-    const pricesUpdatedAt = new Date().toISOString().slice(0, 10)
-    return json({ offers, pricesUpdatedAt })
+    const offers = picked.slice(0, 5).map((o) => ({
+      airline: o.airline || '',
+      price: Math.round(o.price),
+      currency: currency.toUpperCase(),
+      departure_at: o.departure_at || '',
+      transfers: typeof o.transfers === 'number' ? o.transfers : 0,
+    }))
+
+    return json({ offers, oneWay, pricesUpdatedAt: new Date().toISOString().slice(0, 10) })
   } catch (e) {
     return json({ offers: [], error: String(e) })
   }
