@@ -16,6 +16,7 @@ export const AIRLINES: Record<string, string> = {
   DL: 'Delta', AA: 'American Airlines', UA: 'United', B6: 'JetBlue',
   EK: 'Emirates', QR: 'Qatar Airways', EY: 'Etihad', WY: 'Oman Air', GF: 'Gulf Air',
   J9: 'Jazeera Airways', MS: 'EgyptAir', RJ: 'Royal Jordanian', ET: 'Ethiopian',
+  NO: 'Neos', LO: 'LOT', A5: 'HOP', TB: 'TUI fly', X3: 'TUI fly', VA: 'Air Montenegro',
 }
 
 export const airlineName = (code: string): string => AIRLINES[code] || code
