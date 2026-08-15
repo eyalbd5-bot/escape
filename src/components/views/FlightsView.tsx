@@ -34,18 +34,29 @@ function OfferRow({ o, best }: { o: FlightOffer; best?: boolean }) {
 }
 
 /** The 4–5 priced options (only when a live-price source is connected). */
-function OffersList({ offers, updatedAt }: { offers: FlightOffer[]; updatedAt?: string }) {
+function OffersList({
+  offers,
+  updatedAt,
+  oneWay,
+}: {
+  offers: FlightOffer[]
+  updatedAt?: string
+  oneWay?: boolean
+}) {
   return (
     <div className="card">
-      <div className="cl">✈️ טיסות מובילות{updatedAt ? ` · מחירים עודכנו ${heD(updatedAt)}` : ''}</div>
+      <div className="cl">
+        ✈️ טיסות מובילות · {oneWay ? 'מחיר לכיוון' : 'הלוך־חזור'}
+        {updatedAt ? ` · עודכן ${heD(updatedAt)}` : ''}
+      </div>
       <div className="offers">
         {offers.map((o, i) => (
           <OfferRow key={`${o.airline}-${o.price}-${i}`} o={o} best={i === 0} />
         ))}
       </div>
       <div className="note" style={{ marginTop: 10 }}>
-        מחירים אמיתיים משוערים (נכון לחיפוש האחרון), ממוינים מהזול. לחיצה פותחת את ההזמנה ומאשרת את
-        המחיר החי.
+        מחירים אמיתיים משוערים{oneWay ? ' לכיוון אחד' : ' הלוך־חזור'} (עד עצירה אחת, נכון לחיפוש
+        האחרון), ממוינים מהזול. לחיצה פותחת חיפוש חי ב-Google Flights ומאשרת את המחיר.
       </div>
     </div>
   )
@@ -65,7 +76,9 @@ export default function FlightsView({ flights }: Props) {
       <div className="vh">✈️ טיסות</div>
 
       {/* real priced options — appears once a live-price source is wired */}
-      {offers.length > 0 && <OffersList offers={offers} updatedAt={d?.pricesUpdatedAt} />}
+      {offers.length > 0 && (
+        <OffersList offers={offers} updatedAt={d?.pricesUpdatedAt} oneWay={d?.offersOneWay} />
+      )}
 
       {/* HERO — direct, live Google Flights for the exact route + dates */}
       {gf && (

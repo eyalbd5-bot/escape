@@ -157,6 +157,8 @@ export interface FlightsData {
   offers: FlightOffer[]
   /** ISO date the cached prices were last refreshed, shown for transparency */
   pricesUpdatedAt?: string
+  /** true when the offers are one-way outbound prices (round-trip cache was thin) */
+  offersOneWay?: boolean
 }
 export interface HotelsData {
   range: PriceRange
