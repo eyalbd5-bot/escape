@@ -135,6 +135,8 @@ export interface FlightOffer {
   /** price in the given currency (₪ by default) */
   price: number
   currency?: string
+  /** departure date "YYYY-MM-DD" (shown because the flexible list spans dates) */
+  date?: string
   /** local depart/arrive "HH:MM" when available */
   depart?: string
   arrive?: string
