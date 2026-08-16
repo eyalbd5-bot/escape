@@ -8,12 +8,13 @@
  *   TRAVELPAYOUTS_TOKEN   (required, secret)   — your Data API token
  *
  * Quality rules (accuracy is paramount — never surface junk):
- *   - round-trip prices for the EXACT requested dates only (no month fallback that
- *     would show a different date's price).
  *   - max ONE stop — drops the stitched 2–4 stop "self-transfer" itineraries and
  *     non-operating-carrier nonsense (e.g. Wizz Air to New York).
- * If nothing high-quality is cached → return empty (the UI shows the live Google
- * Flights link instead). Never fabricate.
+ *   - (A) round-trip for the EXACT requested dates when the cache has ≥3 such options;
+ *   - (B) otherwise the cheapest ONE-WAY flights AROUND the month, each carrying its own
+ *     departure date (a flexible-date list — dense cache → real 4–5 options, honest
+ *     because every date is shown). Every offer's date is returned so the UI can show it.
+ * If still nothing → empty (the UI shows the live Google Flights link). Never fabricate.
  */
 const TP = 'https://api.travelpayouts.com/aviasales/v3/prices_for_dates'
 const MAX_STOPS = 1
@@ -57,20 +58,24 @@ export async function onRequest(context) {
 
   try {
     const wanted = departure_at.slice(0, 10) // exact requested departure day
-    const clean = (data) =>
+    const month = departure_at.slice(0, 7) // YYYY-MM
+    const quality = (data) =>
       (data || [])
         .filter((o) => o && typeof o.price === 'number' && o.price > 0)
         .filter((o) => (typeof o.transfers === 'number' ? o.transfers : 9) <= MAX_STOPS)
-        .filter((o) => !wanted || (o.departure_at || '').slice(0, 10) === wanted)
-        .sort((a, b) => a.price - b.price)
 
-    // round-trip total price first (most useful); if that exact date has no quality
-    // cache, fall back to one-way outbound (denser) so we still show real prices, labeled.
+    // (A) round-trip for the EXACT dates — best when the cache has enough of them
     let oneWay = false
-    let picked = clean(await query(token, { origin, destination, departure_at, return_at, currency }))
-    if (picked.length === 0 && return_at) {
+    let picked = quality(await query(token, { origin, destination, departure_at, return_at, currency }))
+      .filter((o) => (o.departure_at || '').slice(0, 10) === wanted)
+      .sort((a, b) => a.price - b.price)
+
+    // (B) otherwise: cheapest ONE-WAY around the whole month, each date shown
+    if (picked.length < 3) {
       oneWay = true
-      picked = clean(await query(token, { origin, destination, departure_at, currency }))
+      picked = quality(await query(token, { origin, destination, departure_at: month, currency })).sort(
+        (a, b) => a.price - b.price,
+      )
     }
 
     const offers = picked.slice(0, 5).map((o) => ({
