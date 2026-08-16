@@ -46,6 +46,7 @@ async function fetchOffers(
         airline: airlineName(o.airline || ''),
         price: Math.round(o.price as number),
         currency: o.currency || 'ILS',
+        date: (o.departure_at || '').slice(0, 10) || undefined,
         depart: hhmm(o.departure_at),
         durationMin: typeof o.duration === 'number' ? o.duration : undefined,
         stops: typeof o.transfers === 'number' ? o.transfers : 0,
