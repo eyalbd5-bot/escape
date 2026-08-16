@@ -17,9 +17,14 @@ function OfferRow({ o, best }: { o: FlightOffer; best?: boolean }) {
           {best && <span className="obadge">הזול</span>}
         </div>
         <div className="ometa">
+          {o.date && (
+            <>
+              <bdi>{heD(o.date)}</bdi> ·{' '}
+            </>
+          )}
           {o.depart && (
             <>
-              יציאה <bdi>{o.depart}</bdi> ·{' '}
+              <bdi>{o.depart}</bdi> ·{' '}
             </>
           )}
           {stopsLabel(o.stops)}
@@ -46,7 +51,7 @@ function OffersList({
   return (
     <div className="card">
       <div className="cl">
-        ✈️ טיסות מובילות · {oneWay ? 'מחיר לכיוון' : 'הלוך־חזור'}
+        ✈️ {oneWay ? 'הזולות סביב התאריכים · לכיוון' : 'לתאריכים שלכם · הלוך־חזור'}
         {updatedAt ? ` · עודכן ${heD(updatedAt)}` : ''}
       </div>
       <div className="offers">
@@ -55,8 +60,9 @@ function OffersList({
         ))}
       </div>
       <div className="note" style={{ marginTop: 10 }}>
-        מחירים אמיתיים משוערים{oneWay ? ' לכיוון אחד' : ' הלוך־חזור'} (עד עצירה אחת, נכון לחיפוש
-        האחרון), ממוינים מהזול. לחיצה פותחת חיפוש חי ב-Google Flights ומאשרת את המחיר.
+        {oneWay
+          ? '5 הטיסות הזולות סביב התאריכים שלכם (מחיר לכיוון אחד, עד עצירה אחת) — התאריך המדויק מוצג לכל טיסה. לחיצה פותחת חיפוש חי הלוך־חזור ב-Google Flights.'
+          : 'מחירי הלוך־חזור אמיתיים לתאריכים שלכם (עד עצירה אחת), ממוינים מהזול. לחיצה פותחת חיפוש חי ב-Google Flights.'}
       </div>
     </div>
   )
