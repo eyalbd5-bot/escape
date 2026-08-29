@@ -51,6 +51,11 @@ Cities with curated events (10): `LON NYC BER PAR MAD VIE BCN MUC AMS ROM`.
    Pages Function proxying Travelpayouts; token = server-side env `TRAVELPAYOUTS_TOKEN`, never
    a `VITE_` var). The SPA fetches same-origin `/api/flights`; empty in local dev → the flights
    view shows deep-links only. Each priced row clicks through to **Google Flights**.
+6b. **Agent-discovered events.** The "Escape Scout" Grok Bot outputs ESCAPE_EVENTS JSON;
+   it lands in `src/data/discovered.json` (agent schema) via `npm run add-events <file>`
+   (validates source+dates+category, dedups). `discovered.ts` groups it and merges theatre
+   items into the musicals tab. Spot-verify agent items against their source before trusting
+   (rule 1: AI output is a lead, not fact). Then commit + push → live.
 6. **Concerts.** Real listings need a server proxy (rule 3). The current key-free default
    is the **ConcertBot** (AI deep-link, like the flight bot) in `EventsView`. Ticket-site
    search links always sit **at the bottom** ("עוד מקורות"); real concerts, when a source

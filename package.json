@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint:data": "node scripts/check-no-fabrication.mjs",
+    "add-events": "node scripts/add-events.mjs",
     "verify": "node scripts/check-no-fabrication.mjs && vitest run && tsc -b && vite build"
   },
   "dependencies": {
