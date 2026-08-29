@@ -7,8 +7,9 @@
  * that its run covers the window — and never invent a per-night schedule.
  */
 import type { MusicalPick } from '../core/types'
+import { discoveredTheatre } from './discovered'
 
-interface Musical {
+export interface Musical {
   name: string
   he?: string
   venue: string
@@ -136,7 +137,10 @@ const dow = (date: string): number => new Date(date + 'T00:00:00').getDay()
  * which evenings it actually performs, and whether a verified dark day bites.
  */
 export function musicalsInWindow(iata: string, d1: string, d2: string): MusicalPick[] {
-  const all = MUSICALS[iata] ?? []
+  // curated marquee shows + shows discovered by the Escape Scout agent (dedup by name)
+  const curated = MUSICALS[iata] ?? []
+  const names = new Set(curated.map((m) => m.name))
+  const all = [...curated, ...discoveredTheatre(iata).filter((m) => !names.has(m.name))]
   const windowDates = dateRange(d1, d2)
   if (windowDates.length === 0) return []
   const picks: MusicalPick[] = []

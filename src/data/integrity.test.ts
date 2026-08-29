@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import { CONFERENCES } from './conferences'
 import { MUSICALS } from './musicals'
 import { SPORTS_TEAMS } from './sportsTeams'
+import { DISCOVERED } from './discovered'
 
 /**
  * Data-integrity gate — enforces the project's #1 rule: NEVER fabricate data.
@@ -71,6 +72,27 @@ describe('data integrity — sports teams', () => {
         expect(nonEmpty(t.name)).toBe(true)
         expect(nonEmpty(t.league)).toBe(true)
         expect(['soccer', 'basketball']).toContain(t.sport)
+      })
+    })
+  }
+})
+
+describe('data integrity — discovered events (agent-fed, must be sourced)', () => {
+  const CATS = ['concert', 'sports', 'festival', 'expo', 'theatre']
+  for (const [iata, list] of Object.entries(DISCOVERED)) {
+    it(`${iata}: valid IATA key`, () => expect(iata).toMatch(IATA))
+    list.forEach((e) => {
+      it(`${iata} · ${e.name}: category/name/venue/source/url + valid dates`, () => {
+        expect(CATS).toContain(e.category)
+        expect(nonEmpty(e.name)).toBe(true)
+        expect(nonEmpty(e.venue)).toBe(true)
+        expect(nonEmpty(e.source)).toBe(true) // no source = unverified → fail
+        expect(isUrl(e.url)).toBe(true)
+        expect(isDate(e.dateStart)).toBe(true)
+        if (e.dateEnd !== undefined) {
+          expect(isDate(e.dateEnd)).toBe(true)
+          expect(e.dateStart <= e.dateEnd).toBe(true)
+        }
       })
     })
   }
