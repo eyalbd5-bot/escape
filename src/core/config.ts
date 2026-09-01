@@ -14,6 +14,7 @@ export const CONFIG = {
   /** live flight-price proxy (Cloudflare Pages Function). Same-origin by default;
    *  returns {} in local dev (no Function) → the flights view falls back gracefully. */
   flightsApi: pick('VITE_FLIGHTS_API', '/api/flights'),
+  discoveredApi: pick('VITE_DISCOVERED_API', '/api/discovered'),
 
   frankfurterBase: pick('VITE_FRANKFURTER_BASE', 'https://api.frankfurter.dev/v1'),
   openMeteoGeocode: pick('VITE_OPENMETEO_GEOCODE', 'https://geocoding-api.open-meteo.com/v1'),

@@ -3,6 +3,7 @@ import { CONFERENCES } from './conferences'
 import { MUSICALS } from './musicals'
 import { SPORTS_TEAMS } from './sportsTeams'
 import { DISCOVERED } from './discovered'
+import { NEARBY, NEARBY_EVENTS } from './nearby'
 
 /**
  * Data-integrity gate — enforces the project's #1 rule: NEVER fabricate data.
@@ -93,6 +94,29 @@ describe('data integrity — discovered events (agent-fed, must be sourced)', ()
           expect(isDate(e.dateEnd)).toBe(true)
           expect(e.dateStart <= e.dateEnd).toBe(true)
         }
+      })
+    })
+  }
+})
+
+describe('data integrity — nearby-city events (verified, reachable from anchor)', () => {
+  const CATS = ['sports', 'concert', 'theatre', 'festival', 'expo']
+  for (const [iata, list] of Object.entries(NEARBY_EVENTS)) {
+    it(`${iata}: valid anchor IATA + reachable-cities map exists`, () => {
+      expect(iata).toMatch(IATA)
+      expect((NEARBY[iata] ?? []).length).toBeGreaterThan(0) // must know how to reach it
+    })
+    list.forEach((e) => {
+      it(`${iata} → ${e.city} · ${e.name}: category/name/city/venue/source/url/date/travel`, () => {
+        expect(CATS).toContain(e.category)
+        expect(nonEmpty(e.name)).toBe(true)
+        expect(nonEmpty(e.city)).toBe(true)
+        expect(nonEmpty(e.cityHe)).toBe(true)
+        expect(nonEmpty(e.venue)).toBe(true)
+        expect(nonEmpty(e.source)).toBe(true) // no source = fabricated → fail
+        expect(nonEmpty(e.travel)).toBe(true)
+        expect(isUrl(e.url)).toBe(true)
+        expect(isDate(e.date)).toBe(true)
       })
     })
   }

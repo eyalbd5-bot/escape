@@ -51,11 +51,25 @@ Cities with curated events (10): `LON NYC BER PAR MAD VIE BCN MUC AMS ROM`.
    Pages Function proxying Travelpayouts; token = server-side env `TRAVELPAYOUTS_TOKEN`, never
    a `VITE_` var). The SPA fetches same-origin `/api/flights`; empty in local dev → the flights
    view shows deep-links only. Each priced row clicks through to **Google Flights**.
-6b. **Agent-discovered events.** The "Escape Scout" Grok Bot outputs ESCAPE_EVENTS JSON;
-   it lands in `src/data/discovered.json` (agent schema) via `npm run add-events <file>`
-   (validates source+dates+category, dedups). `discovered.ts` groups it and merges theatre
-   items into the musicals tab. Spot-verify agent items against their source before trusting
-   (rule 1: AI output is a lead, not fact). Then commit + push → live.
+6b. **Agent-discovered events (LIVE, direct pipe).** The "Escape Scout" Grok Bot POSTs its
+   ESCAPE_EVENTS JSON each morning straight to **`functions/api/discovered.js`** (Cloudflare
+   Pages Function → **KV** `DISCOVERED_KV`, guarded by header `X-Admin-Token` = env
+   `DISCOVERED_TOKEN`). The Function validates every item (category/IATA/name/venue/source/url/
+   dates) and dedups — unsourced/malformed are rejected server-side. The SPA reads it LIVE:
+   `eventsSource` fetches same-origin `/api/discovered?city=&d1=&d2=` and merges theatre items
+   into the musicals tab (empty in local dev → curated only, like `/api/flights`).
+   `src/data/discovered.json` is now the **seed** (pushed once via `node scripts/seed-discovered.mjs`)
+   and the integrity fixture; `npm run add-events <file>` still appends to it for offline curation.
+   Server validation can't verify a well-formed claim against its source — spot-audit periodically
+   (rule 1: AI output is a lead, not fact).
+6c. **Nearby-city events ("worth the hop").** A trip anchored in city X should surface marquee
+   events one short train/hop away (the motivating case: a Frankfurt trip 7–10 Dec while Dortmund
+   host Inter in the UCL on the 9th, ~2h by ICE). `src/data/nearby.ts`: `NEARBY` (anchor IATA →
+   reachable cities + Hebrew travel note) and `NEARBY_EVENTS` (curated + VERIFIED marquee events
+   keyed by anchor IATA — real source + date, integrity-tested). `eventsSource` fills
+   `EventsData.nearby` from the curated set PLUS live `/api/discovered` for each reachable city
+   (sports/concert only), rendered as teal "🚆 שווה קפיצה" cards above the tabs. Add a curated
+   nearby event only after verifying the fixture against an official source (rule 1).
 6. **Concerts.** Real listings need a server proxy (rule 3). The current key-free default
    is the **ConcertBot** (AI deep-link, like the flight bot) in `EventsView`. Ticket-site
    search links always sit **at the bottom** ("עוד מקורות"); real concerts, when a source

@@ -6,6 +6,7 @@ import type {
   ConcertsData,
   EventsData,
   MusicalPick,
+  NearbyEvent,
   NormalizedResult,
   SportGroup,
   SportsData,
@@ -350,6 +351,43 @@ function FootballPanel({ s, name }: { s?: SportsData | null; name: string }) {
   )
 }
 
+/* ---------------- nearby cities ---------------- */
+const NEARBY_IC: Record<NearbyEvent['category'], string> = {
+  sports: '⚽',
+  concert: '🎤',
+  theatre: '🎭',
+  festival: '🎡',
+  expo: '🏛️',
+}
+
+function NearbySection({ nearby, anchor }: { nearby: NearbyEvent[]; anchor?: Conference }) {
+  if (nearby.length === 0) return null
+  return (
+    <div className="nearby-wrap">
+      <div className="seg-lbl">🚆 שווה קפיצה — אירוע ענק בעיר סמוכה</div>
+      {nearby.map((e) => {
+        const fit = fitFor(e.date, anchor)
+        return (
+          <a className="card nearby" href={e.url} target="_blank" rel="noopener noreferrer" key={e.name}>
+            <span className="pin">
+              {NEARBY_IC[e.category]} <bdi>{e.cityHe}</bdi> · {e.travel}
+            </span>
+            <h3><bdi>{e.he ?? e.name}</bdi></h3>
+            <div className="ameta">
+              <span>🏟️ <bdi>{e.venue}</bdi></span>
+              <span className="dot" />
+              <span dir="ltr" style={{ unicodeBidi: 'isolate' }}>{heD(e.date)}</span>
+              <span className="dot" />
+              <Src>{e.source}</Src>
+            </div>
+            {fit && <span className={`fit ${fit.cls}`} style={{ marginTop: 8 }}>{fit.label}</span>}
+          </a>
+        )
+      })}
+    </div>
+  )
+}
+
 /* ---------------- screen ---------------- */
 export default function EventsView({ trip, sports, concerts, events }: Props) {
   const s = sports.data
@@ -358,6 +396,7 @@ export default function EventsView({ trip, sports, concerts, events }: Props) {
   const musicals = events.data?.musicals ?? []
   const official = events.data?.official ?? []
   const unofficial = events.data?.unofficial ?? []
+  const nearby = events.data?.nearby ?? []
   const anchor = conferences[0]
   const name = cityName(trip.city)
 
@@ -400,6 +439,8 @@ export default function EventsView({ trip, sports, concerts, events }: Props) {
           {anchor.cluster && <p className="note" style={{ marginTop: 8 }}>{anchor.cluster}</p>}
         </div>
       )}
+
+      <NearbySection nearby={nearby} anchor={anchor} />
 
       <div className="seg-lbl">בחרו אירוע לשלב לנסיעה</div>
       <div className="seg" role="tablist" aria-label="בחירת סוג אירוע">

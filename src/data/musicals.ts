@@ -7,7 +7,6 @@
  * that its run covers the window — and never invent a per-night schedule.
  */
 import type { MusicalPick } from '../core/types'
-import { discoveredTheatre } from './discovered'
 
 export interface Musical {
   name: string
@@ -136,11 +135,8 @@ const dow = (date: string): number => new Date(date + 'T00:00:00').getDay()
  * Marquee shows bookable during [d1,d2], each resolved against the window:
  * which evenings it actually performs, and whether a verified dark day bites.
  */
-export function musicalsInWindow(iata: string, d1: string, d2: string): MusicalPick[] {
-  // curated marquee shows + shows discovered by the Escape Scout agent (dedup by name)
-  const curated = MUSICALS[iata] ?? []
-  const names = new Set(curated.map((m) => m.name))
-  const all = [...curated, ...discoveredTheatre(iata).filter((m) => !names.has(m.name))]
+/** Resolve any Musical[] against a window → schedule-aware picks (curated OR discovered). */
+export function resolveMusicals(all: Musical[], d1: string, d2: string): MusicalPick[] {
   const windowDates = dateRange(d1, d2)
   if (windowDates.length === 0) return []
   const picks: MusicalPick[] = []
@@ -168,4 +164,9 @@ export function musicalsInWindow(iata: string, d1: string, d2: string): MusicalP
     })
   }
   return picks
+}
+
+/** Curated marquee shows for a city, schedule-resolved against the window. */
+export function musicalsInWindow(iata: string, d1: string, d2: string): MusicalPick[] {
+  return resolveMusicals(MUSICALS[iata] ?? [], d1, d2)
 }

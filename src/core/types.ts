@@ -206,8 +206,30 @@ export interface EventsData {
   conferences: Conference[]
   /** curated marquee musicals bookable in the window, schedule-resolved */
   musicals: MusicalPick[]
+  /** marquee events in a REACHABLE nearby city, in-window (e.g. a UCL match one train away) */
+  nearby: NearbyEvent[]
   official: LinkItem[]
   unofficial: LinkItem[]
+}
+
+/** A high-value event in a city near the trip anchor, within reach for a day/evening trip. */
+export interface NearbyEvent {
+  category: 'sports' | 'concert' | 'theatre' | 'festival' | 'expo'
+  /** exact event name (Latin) */
+  name: string
+  /** Hebrew name, if well-known */
+  he?: string
+  /** the nearby city, Latin (e.g. "Dortmund") */
+  city: string
+  /** the nearby city, Hebrew (e.g. "דורטמונד") */
+  cityHe: string
+  venue: string
+  /** YYYY-MM-DD */
+  date: string
+  url: string
+  source: string
+  /** travel note from the anchor, e.g. "≈2 ש׳ ברכבת מפרנקפורט" */
+  travel: string
 }
 
 export interface Concert {

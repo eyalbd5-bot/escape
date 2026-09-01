@@ -253,6 +253,14 @@ a.giglink:hover .dc b{color:var(--teal)}
 .fit.good{color:var(--ok);background:var(--ok-bg)}
 .fit.warn{color:var(--warn);background:var(--warn-bg)}
 .fit.soft{color:var(--ink2);background:rgba(255,255,255,.06)}
+/* nearby-city "worth the hop" cards — teal accent to set them apart from the gold anchor */
+.nearby-wrap{margin:16px 0 6px}
+.card.nearby{display:block;text-decoration:none;position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(46,230,198,.14),rgba(11,16,26,.74));border:1px solid rgba(46,230,198,.4);transition:transform .15s ease,border-color .15s ease}
+.card.nearby+.card.nearby{margin-top:10px}
+.card.nearby:hover{transform:translateY(-2px);border-color:rgba(46,230,198,.72)}
+.card.nearby::before{content:'';position:absolute;inset-inline-start:0;top:0;bottom:0;width:4px;background:linear-gradient(var(--teal),var(--teal2))}
+.card.nearby .pin{display:inline-flex;align-items:center;gap:6px;font-family:'Rubik';font-size:10px;font-weight:800;letter-spacing:.08em;color:var(--teal);background:rgba(46,230,198,.14);padding:4px 10px;border-radius:999px}
+.card.nearby h3{font-family:'Rubik';font-size:17px;font-weight:800;color:var(--ink);margin:9px 0 4px;line-height:1.18}
 
 .go{display:block;width:100%;margin-top:11px;border:none;cursor:pointer;border-radius:13px;padding:12px;font-family:'Rubik';font-weight:800;font-size:14px;color:#04121a;text-align:center;text-decoration:none;background:linear-gradient(135deg,var(--teal),var(--teal2));box-shadow:var(--glow-teal);transition:.16s}
 .go:hover{transform:translateY(-1px)}
